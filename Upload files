@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroSentinel — Dashboard Autorités</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #080f0a;
+    --bg2:       #0e1a10;
+    --bg3:       #142018;
+    --surface:   #1a2b1e;
+    --border:    #243028;
+    --primary:   #2ecc71;
+    --primary2:  #27ae60;
+    --accent:    #f39c12;
+    --danger:    #e74c3c;
+    --warn:      #e67e22;
+    --safe:      #2ecc71;
+    --text:      #e8f5ea;
+    --text2:     #8fad96;
+    --text3:     #4a6650;
+    --mono:      'IBM Plex Mono', monospace;
+    --display:   'Syne', sans-serif;
+    --body:      'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID NOISE TEXTURE */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(46,204,113,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(46,204,113,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── SIDEBAR */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 220px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    padding: 0 0 24px 0;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--primary), var(--primary2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: var(--text);
+  }
+
+  .logo-sub {
+    font-size: 10px;
+    color: var(--text3);
+    font-family: var(--mono);
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .sidebar-status {
+    margin: 16px 20px;
+    padding: 10px 12px;
+    background: rgba(46,204,113,.08);
+    border: 1px solid rgba(46,204,113,.2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+  }
+
+  .status-text {
+    font-size: 11px;
+    color: var(--primary);
+    font-family: var(--mono);
+    font-weight: 600;
+  }
+
+  .nav-section {
+    padding: 12px 20px 4px;
+    font-size: 9px;
+    font-family: var(--mono);
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all .2s;
+    border-left: 3px solid transparent;
+    font-size: 13.5px;
+    font-weight: 400;
+    color: var(--text2);
+  }
+
+  .nav-item:hover { background: var(--surface); color: var(--text); }
+
+  .nav-item.active {
+    background: rgba(46,204,113,.08);
+    color: var(--primary);
+    border-left-color: var(--primary);
+    font-weight: 500;
+  }
+
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .nav-badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-family: var(--mono);
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .user-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .user-avatar {
+    width: 34px; height: 34px;
+    background: var(--surface);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .user-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .user-role { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+
+  /* ── MAIN */
+  .main {
+    margin-left: 220px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── TOPBAR */
+  .topbar {
+    display: flex;
+    align-items: center;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8,15,10,.8);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    gap: 16px;
+  }
+
+  .topbar-title {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .topbar-time {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  .topbar-alert-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: rgba(231,76,60,.12);
+    border: 1px solid rgba(231,76,60,.3);
+    border-radius: 8px;
+    color: var(--danger);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--mono);
+    cursor: pointer;
+    animation: border-pulse 2s infinite;
+  }
+
+  @keyframes border-pulse {
+    0%, 100% { border-color: rgba(231,76,60,.3); }
+    50% { border-color: rgba(231,76,60,.8); }
+  }
+
+  /* ── CONTENT */
+  .content { padding: 24px 28px; flex: 1; }
+
+  /* ── CRITICAL BANNER */
+  .critical-banner {
+    background: linear-gradient(135deg, rgba(231,76,60,.15), rgba(231,76,60,.05));
+    border: 1px solid rgba(231,76,60,.3);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInDown .5s ease;
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .critical-banner::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--danger);
+  }
+
+  .critical-icon {
+    font-size: 28px;
+    animation: shake 0.5s infinite alternate;
+  }
+
+  @keyframes shake {
+    from { transform: rotate(-5deg); }
+    to { transform: rotate(5deg); }
+  }
+
+  .critical-info { flex: 1; }
+  .critical-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--danger);
+    letter-spacing: 2px;
+    font-weight: 600;
+  }
+
+  .critical-title {
+    font-family: var(--display);
+    font-size: 17px;
+    font-weight: 700;
+    margin: 3px 0;
+  }
+
+  .critical-sub { font-size: 13px; color: var(--text2); }
+
+  .critical-actions { display: flex; gap: 10px; }
+
+  .btn-danger {
+    padding: 8px 16px;
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--body);
+    transition: opacity .2s;
+  }
+
+  .btn-danger:hover { opacity: 0.85; }
+
+  .btn-outline {
+    padding: 8px 16px;
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: var(--body);
+    transition: all .2s;
+  }
+
+  .btn-outline:hover { background: var(--surface); color: var(--text); }
+
+  /* ── KPI GRID */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s, border-color .2s;
+    animation: fadeIn .4s ease both;
+  }
+
+  .kpi-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .kpi-card:nth-child(1) { animation-delay: .05s; }
+  .kpi-card:nth-child(2) { animation-delay: .1s; }
+  .kpi-card:nth-child(3) { animation-delay: .15s; }
+  .kpi-card:nth-child(4) { animation-delay: .2s; }
+
+  .kpi-glow {
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.08;
+    filter: blur(20px);
+  }
+
+  .kpi-icon {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+
+  .kpi-value {
+    font-family: var(--display);
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .kpi-label {
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 400;
+  }
+
+  .kpi-trend {
+    position: absolute;
+    top: 18px; right: 18px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .trend-up { color: var(--danger); }
+  .trend-down { color: var(--safe); }
+
+  /* ── MAIN GRID */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+
+  .card-title {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 700;
+    flex: 1;
+  }
+
+  .card-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    background: var(--bg3);
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+  }
+
+  /* ── MAP PLACEHOLDER */
+  .map-container {
+    height: 340px;
+    background: var(--bg3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .map-svg {
+    width: 100%; height: 100%;
+  }
+
+  .map-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 60% 40%, transparent 40%, var(--bg3) 100%);
+  }
+
+  /* Points sur la carte */
+  .map-point {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+  }
+
+  .map-point-ring {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    animation: ring-expand 2s infinite;
+  }
+
+  @keyframes ring-expand {
+    0% { width: 16px; height: 16px; opacity: .8; }
+    100% { width: 48px; height: 48px; opacity: 0; }
+  }
+
+  .map-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid white;
+    position: relative;
+    z-index: 2;
+    transition: transform .2s;
+  }
+
+  .map-dot:hover { transform: scale(1.4); }
+
+  .map-label {
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    white-space: nowrap;
+    background: var(--bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .map-legend {
+    position: absolute;
+    bottom: 12px; right: 12px;
+    background: rgba(8,15,10,.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 10px;
+    color: var(--text2);
+    margin-bottom: 5px;
+    font-family: var(--mono);
+  }
+
+  .legend-item:last-child { margin-bottom: 0; }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .map-stats {
+    position: absolute;
+    top: 12px; left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .map-stat-pill {
+    background: rgba(8,15,10,.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ── ALERTES TABLE */
+  .alert-list { padding: 0; }
+
+  .alert-row {
+    display: flex;
+    align-items: center;
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    transition: background .15s;
+    cursor: pointer;
+  }
+
+  .alert-row:last-child { border-bottom: none; }
+  .alert-row:hover { background: var(--surface); }
+
+  .alert-level {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .alert-main { flex: 1; min-width: 0; }
+  .alert-zone {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .alert-meta {
+    font-size: 11px;
+    color: var(--text2);
+    font-family: var(--mono);
+    margin-top: 2px;
+  }
+
+  .alert-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.8px;
+    flex-shrink: 0;
+  }
+
+  .badge-critique {
+    background: rgba(231,76,60,.15);
+    color: var(--danger);
+    border: 1px solid rgba(231,76,60,.3);
+  }
+
+  .badge-eleve {
+    background: rgba(230,126,34,.15);
+    color: var(--warn);
+    border: 1px solid rgba(230,126,34,.3);
+  }
+
+  .badge-modere {
+    background: rgba(243,156,18,.15);
+    color: var(--accent);
+    border: 1px solid rgba(243,156,18,.3);
+  }
+
+  .badge-faible {
+    background: rgba(46,204,113,.15);
+    color: var(--safe);
+    border: 1px solid rgba(46,204,113,.3);
+  }
+
+  .alert-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    flex-shrink: 0;
+  }
+
+  /* ── BOTTOM GRID */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.2fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* ── CHART */
+  .chart-area {
+    padding: 20px;
+  }
+
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 120px;
+    margin-bottom: 8px;
+  }
+
+  .chart-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .chart-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    transition: opacity .2s;
+    cursor: pointer;
+  }
+
+  .chart-bar:hover { opacity: 0.75; }
+
+  .chart-bar-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text3);
+    text-align: center;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .chart-leg-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--text2);
+    font-family: var(--mono);
+  }
+
+  .chart-leg-dot {
+    width: 8px; height: 8px;
+    border-radius: 2px;
+  }
+
+  /* ── COUNTRIES */
+  .country-list { padding: 8px 0; }
+
+  .country-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    gap: 12px;
+    transition: background .15s;
+  }
+
+  .country-row:hover { background: var(--surface); }
+
+  .country-flag { font-size: 20px; }
+
+  .country-info { flex: 1; }
+  .country-name { font-size: 13px; font-weight: 500; }
+  .country-zones { font-size: 11px; color: var(--text2); font-family: var(--mono); }
+
+  .country-bar-wrap { width: 80px; }
+
+  .country-bar-bg {
+    height: 5px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .country-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width .6s ease;
+  }
+
+  .country-risk {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    width: 28px;
+    text-align: right;
+  }
+
+  /* ── SIGNALEMENTS */
+  .feed-list { padding: 0; }
+
+  .feed-item {
+    display: flex;
+    gap: 12px;
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+
+  .feed-item:last-child { border-bottom: none; }
+  .feed-item:hover { background: var(--surface); }
+
+  .feed-avatar {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+
+  .feed-main { flex: 1; min-width: 0; }
+  .feed-author { font-size: 12px; font-weight: 600; }
+  .feed-text { font-size: 12px; color: var(--text2); margin-top: 2px; line-height: 1.4; }
+  .feed-coords {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  .feed-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    flex-shrink: 0;
+  }
+
+  /* ── STATS ROW */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .mini-stat {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: fadeIn .5s ease both;
+  }
+
+  .mini-stat:nth-child(1) { animation-delay: .3s; }
+  .mini-stat:nth-child(2) { animation-delay: .35s; }
+  .mini-stat:nth-child(3) { animation-delay: .4s; }
+
+  .mini-stat-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .mini-stat-val {
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .mini-stat-label {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  /* ── SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── TOOLTIP */
+  [data-tip] { position: relative; }
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    font-family: var(--mono);
+    z-index: 999;
+  }
+
+  /* ── RESPONSIVE */
+  @media (max-width: 1100px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .main-grid { grid-template-columns: 1fr; }
+    .bottom-grid { grid-template-columns: 1fr 1fr; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-badge">
+      <div class="logo-icon">🌿</div>
+      <div>
+        <div class="logo-text">AgroSentinel</div>
+        <div class="logo-sub">DASHBOARD v1.0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-status">
+    <div class="status-dot"></div>
+    <div class="status-text">SYSTÈME ACTIF</div>
+  </div>
+
+  <div class="nav-section">Navigation</div>
+  <div class="nav-item active"><span class="nav-icon">⬛</span> Vue d'ensemble <span class="nav-badge">3</span></div>
+  <div class="nav-item"><span class="nav-icon">🗺️</span> Carte en direct</div>
+  <div class="nav-item"><span class="nav-icon">🦗</span> Essaims actifs</div>
+  <div class="nav-item"><span class="nav-icon">📡</span> Signalements</div>
+  <div class="nav-item"><span class="nav-icon">📊</span> Statistiques</div>
+
+  <div class="nav-section">Gestion</div>
+  <div class="nav-item"><span class="nav-icon">👥</span> Agriculteurs</div>
+  <div class="nav-item"><span class="nav-icon">📩</span> Envoyer alertes</div>
+  <div class="nav-item"><span class="nav-icon">🏛️</span> Rapports officiels</div>
+  <div class="nav-item"><span class="nav-icon">⚙️</span> Paramètres</div>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">🏛️</div>
+      <div>
+        <div class="user-name">Min. Agriculture</div>
+        <div class="user-role">MALI · ADMIN</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════ MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title">Vue d'ensemble</div>
+    <div class="topbar-alert-btn">⚠ 3 ALERTES ACTIVES</div>
+    <div class="topbar-time" id="clock">—</div>
+  </div>
+
+  <div class="content">
+
+    <!-- CRITICAL BANNER -->
+    <div class="critical-banner">
+      <div class="critical-icon">🦗</div>
+      <div class="critical-info">
+        <div class="critical-label">⬛ ALERTE CRITIQUE — ACTION REQUISE</div>
+        <div class="critical-title">Essaim massif détecté — Tahoua, Niger</div>
+        <div class="critical-sub">85 km de la frontière Mali · Arrivée estimée dans <strong style="color:var(--danger)">6 heures</strong> · 45 000 agriculteurs concernés</div>
+      </div>
+      <div class="critical-actions">
+        <button class="btn-danger" onclick="alert('Envoi SMS en cours vers 45 000 agriculteurs...')">📩 Alerter la zone</button>
+        <button class="btn-outline">Voir détails</button>
+      </div>
+    </div>
+
+    <!-- KPI GRID -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-glow" style="background:var(--danger);"></div>
+        <div class="kpi-icon">🦗</div>
+        <div class="kpi-value" style="color:var(--danger)">6</div>
+        <div class="kpi-label">Essaims actifs surveillés</div>
+        <div class="kpi-trend trend-up">▲ +2 <span style="font-weight:300;color:var(--text3)">/ 7j</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-glow" style="background:var(--warn);"></div>
+        <div class="kpi-icon">🌍</div>
+        <div class="kpi-value" style="color:var(--accent)">5</div>
+        <div class="kpi-label">Pays sous surveillance</div>
+        <div class="kpi-trend" style="color:var(--text3)">— stable</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-glow" style="background:var(--primary);"></div>
+        <div class="kpi-icon">👨‍🌾</div>
+        <div class="kpi-value" style="color:var(--primary)">159K</div>
+        <div class="kpi-label">Agriculteurs alertés (7j)</div>
+        <div class="kpi-trend trend-down">▲ +18K <span style="font-weight:300;color:var(--text3)">/ 7j</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-glow" style="background:var(--accent);"></div>
+        <div class="kpi-icon">📱</div>
+        <div class="kpi-value" style="color:var(--accent)">342</div>
+        <div class="kpi-label">Signalements reçus (7j)</div>
+        <div class="kpi-trend trend-up">▲ +67 <span style="font-weight:300;color:var(--text3)">/ 7j</span></div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID : CARTE + ALERTES -->
+    <div class="main-grid">
+
+      <!-- CARTE -->
+      <div class="card">
+        <div class="card-header">
+          <div>🗺️</div>
+          <div class="card-title">Carte des essaims — Sahel</div>
+          <div class="card-tag">TEMPS RÉEL</div>
+        </div>
+        <div class="map-container">
+          <!-- SVG fond carte Afrique -->
+          <svg class="map-svg" viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg">
+            <rect width="800" height="380" fill="#0e1a10"/>
+            <!-- Grille -->
+            <defs>
+              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(46,204,113,0.04)" stroke-width="1"/>
+              </pattern>
+            </defs>
+            <rect width="800" height="380" fill="url(#grid)"/>
+            <!-- Forme simplifiée Afrique Ouest / Sahel -->
+            <path d="M80,40 L720,30 L750,200 L700,340 L580,370 L350,360 L180,350 L60,280 Z"
+              fill="rgba(46,204,113,0.06)" stroke="rgba(46,204,113,0.15)" stroke-width="1.5"/>
+            <!-- Rivières symboliques -->
+            <path d="M200,180 Q280,160 350,200 Q420,240 500,210"
+              fill="none" stroke="rgba(46,204,113,0.12)" stroke-width="2"/>
+            <path d="M420,60 Q440,120 430,180 Q420,240 440,300"
+              fill="none" stroke="rgba(46,204,113,0.08)" stroke-width="1.5"/>
+            <!-- Labels pays -->
+            <text x="150" y="200" fill="rgba(255,255,255,0.15)" font-size="11" font-family="IBM Plex Mono">MALI</text>
+            <text x="320" y="140" fill="rgba(255,255,255,0.15)" font-size="11" font-family="IBM Plex Mono">NIGER</text>
+            <text x="100" y="260" fill="rgba(255,255,255,0.15)" font-size="10" font-family="IBM Plex Mono">GUINÉE</text>
+            <text x="200" y="280" fill="rgba(255,255,255,0.12)" font-size="10" font-family="IBM Plex Mono">BURKINA</text>
+            <text x="500" y="200" fill="rgba(255,255,255,0.15)" font-size="11" font-family="IBM Plex Mono">TCHAD</text>
+            <text x="80" y="170" fill="rgba(255,255,255,0.12)" font-size="10" font-family="IBM Plex Mono">SÉNÉGAL</text>
+            <!-- Trajectoires -->
+            <path d="M390,115 Q310,170 240,200"
+              fill="none" stroke="rgba(231,76,60,0.6)" stroke-width="2.5" stroke-dasharray="8,5"/>
+            <path d="M530,185 Q470,200 400,210"
+              fill="none" stroke="rgba(230,126,34,0.5)" stroke-width="2" stroke-dasharray="6,4"/>
+            <path d="M110,155 Q130,180 160,210"
+              fill="none" stroke="rgba(243,156,18,0.5)" stroke-width="1.5" stroke-dasharray="5,4"/>
+            <!-- Flèches de direction -->
+            <polygon points="240,198 233,192 247,192" fill="rgba(231,76,60,0.8)"/>
+            <polygon points="400,208 393,202 407,202" fill="rgba(230,126,34,0.7)"/>
+          </svg>
+
+          <div class="map-overlay"></div>
+
+          <!-- Points des essaims -->
+          <div class="map-point" style="left:49%;top:30%;color:#e74c3c" data-tip="Tahoua, Niger — Critique">
+            <div class="map-point-ring" style="color:#e74c3c"></div>
+            <div class="map-dot" style="background:#e74c3c"></div>
+            <div class="map-label" style="color:#e74c3c">Tahoua</div>
+          </div>
+
+          <div class="map-point" style="left:66%;top:49%;color:#e67e22" data-tip="Lac Tchad — Élevé">
+            <div class="map-point-ring" style="color:#e67e22"></div>
+            <div class="map-dot" style="background:#e67e22"></div>
+            <div class="map-label" style="color:#e67e22">Lac Tchad</div>
+          </div>
+
+          <div class="map-point" style="left:13%;top:42%;color:#f39c12" data-tip="Louga, Sénégal — Modéré">
+            <div class="map-dot" style="background:#f39c12"></div>
+            <div class="map-label" style="color:#f39c12">Louga</div>
+          </div>
+
+          <div class="map-point" style="left:29%;top:52%;color:#2ecc71" data-tip="Gao, Mali — Faible">
+            <div class="map-dot" style="background:#2ecc71"></div>
+            <div class="map-label" style="color:#2ecc71">Gao</div>
+          </div>
+
+          <div class="map-point" style="left:43%;top:62%;color:#f39c12" data-tip="Mopti, Mali — Modéré">
+            <div class="map-dot" style="background:#f39c12"></div>
+            <div class="map-label" style="color:#f39c12">Mopti</div>
+          </div>
+
+          <div class="map-point" style="left:57%;top:22%;color:#e67e22" data-tip="Agadez, Niger — Élevé">
+            <div class="map-dot" style="background:#e67e22"></div>
+            <div class="map-label" style="color:#e67e22">Agadez</div>
+          </div>
+
+          <!-- Position utilisateur -->
+          <div class="map-point" style="left:23%;top:64%;color:#3498db" data-tip="Bamako — Votre position">
+            <div class="map-dot" style="background:#3498db; width:10px; height:10px;"></div>
+          </div>
+
+          <!-- Légende -->
+          <div class="map-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Critique</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#e67e22"></div>Élevé</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>Modéré</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div>Faible</div>
+            <div class="legend-item" style="margin-top:4px"><div style="width:14px;height:2px;background:#e74c3c;border-radius:2px;border-top: 1px dashed #e74c3c;"></div>Trajectoire</div>
+          </div>
+
+          <!-- Stats sur la carte -->
+          <div class="map-stats">
+            <div class="map-stat-pill">📡 FAO DLIS — Live</div>
+            <div class="map-stat-pill">🌡️ 34°C · Vent 22 km/h SW</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTES ACTIVES -->
+      <div class="card">
+        <div class="card-header">
+          <div>⚠️</div>
+          <div class="card-title">Alertes actives</div>
+          <div class="card-tag">6 ZONES</div>
+        </div>
+        <div class="alert-list">
+          <div class="alert-row">
+            <div class="alert-level" style="background:#e74c3c"></div>
+            <div class="alert-main">
+              <div class="alert-zone">Tahoua, Niger</div>
+              <div class="alert-meta">85 km · 6h · 1 200 ha</div>
+            </div>
+            <div class="alert-badge badge-critique">CRITIQUE</div>
+            <div class="alert-time">2h ago</div>
+          </div>
+          <div class="alert-row">
+            <div class="alert-level" style="background:#e67e22"></div>
+            <div class="alert-main">
+              <div class="alert-zone">Agadez, Niger</div>
+              <div class="alert-meta">210 km · 14h · 800 ha</div>
+            </div>
+            <div class="alert-badge badge-eleve">ÉLEVÉ</div>
+            <div class="alert-time">4h ago</div>
+          </div>
+          <div class="alert-row">
+            <div class="alert-level" style="background:#e67e22"></div>
+            <div class="alert-main">
+              <div class="alert-zone">Lac Tchad, Tchad</div>
+              <div class="alert-meta">140 km · 18h · 650 ha</div>
+            </div>
+            <div class="alert-badge badge-eleve">ÉLEVÉ</div>
+            <div class="alert-time">5h ago</div>
+          </div>
+          <div class="alert-row">
+            <div class="alert-level" style="background:#f39c12"></div>
+            <div class="alert-main">
+              <div class="alert-zone">Mopti, Mali</div>
+              <div class="alert-meta">320 km · 28h · 200 ha</div>
+            </div>
+            <div class="alert-badge badge-modere">MODÉRÉ</div>
+            <div class="alert-time">8h ago</div>
+          </div>
+          <div class="alert-row">
+            <div class="alert-level" style="background:#f39c12"></div>
+            <div class="alert-main">
+              <div class="alert-zone">Louga, Sénégal</div>
+              <div class="alert-meta">220 km · 36h · 150 ha</div>
+            </div>
+            <div class="alert-badge badge-modere">MODÉRÉ</div>
+            <div class="alert-time">12h ago</div>
+          </div>
+          <div class="alert-row">
+            <div class="alert-level" style="background:#2ecc71"></div>
+            <div class="alert-main">
+              <div class="alert-zone">Gao, Mali</div>
+              <div class="alert-meta">Dispersé · Risque résiduel</div>
+            </div>
+            <div class="alert-badge badge-faible">FAIBLE</div>
+            <div class="alert-time">1j ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM GRID -->
+    <div class="bottom-grid">
+
+      <!-- HISTORIQUE 7 JOURS -->
+      <div class="card">
+        <div class="card-header">
+          <div>📊</div>
+          <div class="card-title">Essaims détectés — 7 jours</div>
+        </div>
+        <div class="chart-area">
+          <div class="chart-bars" id="barChart"></div>
+          <div class="chart-legend">
+            <div class="chart-leg-item"><div class="chart-leg-dot" style="background:#e74c3c"></div>Critique</div>
+            <div class="chart-leg-item"><div class="chart-leg-dot" style="background:#e67e22"></div>Élevé</div>
+            <div class="chart-leg-item"><div class="chart-leg-dot" style="background:#f39c12"></div>Modéré</div>
+            <div class="chart-leg-item"><div class="chart-leg-dot" style="background:#2ecc71"></div>Faible</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYS -->
+      <div class="card">
+        <div class="card-header">
+          <div>🌍</div>
+          <div class="card-title">Risque par pays</div>
+        </div>
+        <div class="country-list">
+          <div class="country-row">
+            <div class="country-flag">🇳🇪</div>
+            <div class="country-info">
+              <div class="country-name">Niger</div>
+              <div class="country-zones">2 zones actives</div>
+            </div>
+            <div class="country-bar-wrap">
+              <div class="country-bar-bg">
+                <div class="country-bar-fill" style="width:92%;background:#e74c3c"></div>
+              </div>
+            </div>
+            <div class="country-risk" style="color:#e74c3c">92</div>
+          </div>
+          <div class="country-row">
+            <div class="country-flag">🇹🇩</div>
+            <div class="country-info">
+              <div class="country-name">Tchad</div>
+              <div class="country-zones">1 zone active</div>
+            </div>
+            <div class="country-bar-wrap">
+              <div class="country-bar-bg">
+                <div class="country-bar-fill" style="width:70%;background:#e67e22"></div>
+              </div>
+            </div>
+            <div class="country-risk" style="color:#e67e22">70</div>
+          </div>
+          <div class="country-row">
+            <div class="country-flag">🇲🇱</div>
+            <div class="country-info">
+              <div class="country-name">Mali</div>
+              <div class="country-zones">2 zones actives</div>
+            </div>
+            <div class="country-bar-wrap">
+              <div class="country-bar-bg">
+                <div class="country-bar-fill" style="width:55%;background:#f39c12"></div>
+              </div>
+            </div>
+            <div class="country-risk" style="color:#f39c12">55</div>
+          </div>
+          <div class="country-row">
+            <div class="country-flag">🇸🇳</div>
+            <div class="country-info">
+              <div class="country-name">Sénégal</div>
+              <div class="country-zones">1 zone active</div>
+            </div>
+            <div class="country-bar-wrap">
+              <div class="country-bar-bg">
+                <div class="country-bar-fill" style="width:38%;background:#f39c12"></div>
+              </div>
+            </div>
+            <div class="country-risk" style="color:#f39c12">38</div>
+          </div>
+          <div class="country-row">
+            <div class="country-flag">🇧🇫</div>
+            <div class="country-info">
+              <div class="country-name">Burkina Faso</div>
+              <div class="country-zones">0 zone active</div>
+            </div>
+            <div class="country-bar-wrap">
+              <div class="country-bar-bg">
+                <div class="country-bar-fill" style="width:12%;background:#2ecc71"></div>
+              </div>
+            </div>
+            <div class="country-risk" style="color:#2ecc71">12</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIGNALEMENTS TERRAIN -->
+      <div class="card">
+        <div class="card-header">
+          <div>📡</div>
+          <div class="card-title">Signalements terrain</div>
+          <div class="card-tag">342 CE MOIS</div>
+        </div>
+        <div class="feed-list">
+          <div class="feed-item">
+            <div class="feed-avatar">👨‍🌾</div>
+            <div class="feed-main">
+              <div class="feed-author">Moussa K. — Tahoua</div>
+              <div class="feed-text">Nuage de criquets très dense observé, direction sud-ouest. Cultures de mil en danger immédiat.</div>
+              <div class="feed-coords">14.87°N / 5.27°E · Densité 5/5</div>
+            </div>
+            <div class="feed-time">8 min</div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-avatar">👩‍🌾</div>
+            <div class="feed-main">
+              <div class="feed-author">Aminata D. — Mopti</div>
+              <div class="feed-text">Petits groupes aperçus en bordure de champ. Mouvement vers le nord.</div>
+              <div class="feed-coords">14.49°N / -4.20°E · Densité 2/5</div>
+            </div>
+            <div class="feed-time">34 min</div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-avatar">👨‍🌾</div>
+            <div class="feed-main">
+              <div class="feed-author">Ibrahim S. — Agadez</div>
+              <div class="feed-text">Essaim stationnaire depuis ce matin. Traitement préventif appliqué sur 3 ha.</div>
+              <div class="feed-coords">16.97°N / 7.99°E · Densité 4/5</div>
+            </div>
+            <div class="feed-time">1h 12</div>
+          </div>
+          <div class="feed-item">
+            <div class="feed-avatar">🏛️</div>
+            <div class="feed-main">
+              <div class="feed-author">Agent FAO — Lac Tchad</div>
+              <div class="feed-text">Confirmation terrain : essaim de 650 ha se déplaçant vers l'ouest à ~35 km/h.</div>
+              <div class="feed-coords">13.51°N / 14.45°E · Source officielle</div>
+            </div>
+            <div class="feed-time">2h 05</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="stats-row">
+      <div class="mini-stat">
+        <div class="mini-stat-icon" style="background:rgba(46,204,113,.1)">📱</div>
+        <div>
+          <div class="mini-stat-val" style="color:var(--primary)">98.2%</div>
+          <div class="mini-stat-label">Taux de livraison SMS</div>
+        </div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-stat-icon" style="background:rgba(243,156,18,.1)">⚡</div>
+        <div>
+          <div class="mini-stat-val" style="color:var(--accent)">4.2 min</div>
+          <div class="mini-stat-label">Temps moyen de détection</div>
+        </div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-stat-icon" style="background:rgba(52,152,219,.1)">🌾</div>
+        <div>
+          <div class="mini-stat-val" style="color:#3498db">73%</div>
+          <div class="mini-stat-label">Agriculteurs ont agi après alerte</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+  // ── Horloge temps réel
+  function updateClock() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    document.getElementById('clock').textContent =
+      `${now.toLocaleDateString('fr-FR', {weekday:'short', day:'2-digit', month:'short'})} · ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())} UTC`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ── Graphique en barres
+  const data = [
+    { jour: 'Lun', critique: 1, eleve: 2, modere: 1, faible: 0 },
+    { jour: 'Mar', critique: 0, eleve: 1, modere: 2, faible: 1 },
+    { jour: 'Mer', critique: 2, eleve: 1, modere: 1, faible: 0 },
+    { jour: 'Jeu', critique: 1, eleve: 3, modere: 0, faible: 1 },
+    { jour: 'Ven', critique: 3, eleve: 2, modere: 2, faible: 0 },
+    { jour: 'Sam', critique: 1, eleve: 1, modere: 1, faible: 2 },
+    { jour: 'Auj', critique: 2, eleve: 2, modere: 2, faible: 0 },
+  ];
+
+  const maxVal = Math.max(...data.map(d => d.critique + d.eleve + d.modere + d.faible));
+  const chart = document.getElementById('barChart');
+
+  data.forEach((d, i) => {
+    const total = d.critique + d.eleve + d.modere + d.faible;
+    const wrap = document.createElement('div');
+    wrap.className = 'chart-bar-wrap';
+
+    // Barres empilées
+    const stack = document.createElement('div');
+    stack.style.cssText = `width:100%;display:flex;flex-direction:column-reverse;height:${Math.max(4,(total/maxVal)*100)}px;border-radius:4px 4px 0 0;overflow:hidden;`;
+
+    const segments = [
+      { val: d.critique, color: '#e74c3c' },
+      { val: d.eleve,    color: '#e67e22' },
+      { val: d.modere,   color: '#f39c12' },
+      { val: d.faible,   color: '#2ecc71' },
+    ];
+
+    segments.forEach(s => {
+      if (s.val > 0) {
+        const seg = document.createElement('div');
+        seg.style.cssText = `height:${(s.val/total)*100}%;background:${s.color};`;
+        stack.appendChild(seg);
+      }
+    });
+
+    const label = document.createElement('div');
+    label.className = 'chart-bar-label';
+    label.textContent = d.jour;
+
+    // Valeur totale au-dessus
+    const valLabel = document.createElement('div');
+    valLabel.style.cssText = `font-family:var(--mono);font-size:9px;color:var(--text2);text-align:center;margin-bottom:3px;`;
+    valLabel.textContent = total || '';
+
+    wrap.appendChild(valLabel);
+    wrap.appendChild(stack);
+    wrap.appendChild(label);
+    chart.appendChild(wrap);
+
+    // Animation d'entrée
+    wrap.style.opacity = '0';
+    wrap.style.transform = 'scaleY(0)';
+    wrap.style.transformOrigin = 'bottom';
+    wrap.style.transition = `all 0.5s ease ${i * 0.07}s`;
+    requestAnimationFrame(() => {
+      wrap.style.opacity = '1';
+      wrap.style.transform = 'scaleY(1)';
+    });
+  });
+
+  // ── Simulation live : nouveau signalement toutes les 45s
+  const feedList = document.querySelector('.feed-list');
+  const nomsAgriculteurs = ['Kofi A.', 'Fatou B.', 'Seydou C.', 'Mariam T.', 'Oumar D.'];
+  const zones = ['Tillabéri', 'Dosso', 'Zinder', 'Kayes', 'Ségou'];
+  const densites = [2, 3, 4, 3, 2];
+  let signalIdx = 0;
+
+  setInterval(() => {
+    const nom = nomsAgriculteurs[signalIdx % nomsAgriculteurs.length];
+    const zone = zones[signalIdx % zones.length];
+    const den = densites[signalIdx % densites.length];
+
+    const item = document.createElement('div');
+    item.className = 'feed-item';
+    item.style.opacity = '0';
+    item.style.transform = 'translateX(-10px)';
+    item.style.transition = 'all 0.4s ease';
+    item.innerHTML = `
+      <div class="feed-avatar">👨‍🌾</div>
+      <div class="feed-main">
+        <div class="feed-author">${nom} — ${zone}</div>
+        <div class="feed-text">Nouveau signalement : activité de criquets observée. Densité ${den}/5.</div>
+        <div class="feed-coords">Coords GPS en cours · Densité ${den}/5</div>
+      </div>
+      <div class="feed-time" style="color:var(--primary)">maintenant</div>
+    `;
+
+    feedList.insertBefore(item, feedList.firstChild);
+    requestAnimationFrame(() => { item.style.opacity='1'; item.style.transform='translateX(0)'; });
+
+    // Supprimer le 5e item
+    const items = feedList.querySelectorAll('.feed-item');
+    if (items.length > 4) items[items.length-1].remove();
+
+    signalIdx++;
+  }, 45000);
+
+  // ── Simulation : mise à jour compteur alertes
+  let alertCount = 3;
+  document.querySelectorAll('.nav-badge').forEach(b => b.textContent = alertCount);
+</script>
+</body>
+</html>
